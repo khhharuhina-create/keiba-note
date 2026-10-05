@@ -1,0 +1,665 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>競走馬ノート</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: phone = one screen at a time with a bottom tab bar; PC = horse list on the left, data page on the right.
+   The data page is a dense profile table plus a results table, in the manner of a racing database site. */
+:root{
+  --bg:#eceee9;--surface:#fbfbf9;--surface2:#f0f2ed;--ink:#17201b;--muted:#5b685f;--line:#cfd6cc;
+  --accent:#17694a;--accent-ink:#ffffff;--accent-soft:#dcebe3;--danger:#b3392f;--swatch-edge:#9aa59d;
+  --th:#e2eae1;--band:#1d5c43;--band-ink:#ffffff;--link:#1b5cb0;
+  --r1:#fff0b8;--r2:#dce9fa;--r3:#fbe3d3;
+  --g1:#2a5db5;--g2:#c53a3d;--g3:#26793f;
+  --f-disp:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
+  --f-body:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',Meiryo,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1411;--surface:#171e1a;--surface2:#1e2722;--ink:#e6ece7;--muted:#9aa89f;--line:#2f3b34;
+    --accent:#4fbb8c;--accent-ink:#07140e;--accent-soft:#1c3a2d;--danger:#e8786d;--swatch-edge:#5d6b63;
+    --th:#222e27;--band:#1f5a40;--band-ink:#eaf5ee;--link:#86b4f2;
+    --r1:#4a3f12;--r2:#1e3250;--r3:#4a2c1c;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1411;--surface:#171e1a;--surface2:#1e2722;--ink:#e6ece7;--muted:#9aa89f;--line:#2f3b34;
+  --accent:#4fbb8c;--accent-ink:#07140e;--accent-soft:#1c3a2d;--danger:#e8786d;--swatch-edge:#5d6b63;
+  --th:#222e27;--band:#1f5a40;--band-ink:#eaf5ee;--link:#86b4f2;
+  --r1:#4a3f12;--r2:#1e3250;--r3:#4a2c1c;
+  color-scheme:dark;
+}
+html.lock{overflow:hidden}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.6 var(--f-body);font-variant-numeric:tabular-nums}
+*{box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:20px}
+h1{margin:0;font:800 21px/1.2 var(--f-disp);letter-spacing:.06em}
+.tabs{display:flex;gap:4px}
+.tab{min-height:40px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:700;cursor:pointer}
+.tab[aria-current="true"]{background:var(--accent-soft);color:var(--accent)}
+@media (max-width:899px){
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;gap:0;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+  .tab{flex:1;min-height:46px;border-radius:10px}
+}
+.main{max-width:1100px;margin:0 auto;padding:16px 16px 100px;min-width:0}
+@media (min-width:900px){.main{padding-bottom:40px}}
+.loading,.placeholder{color:var(--muted);padding:32px 0;text-align:center}
+
+.split{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+@media (min-width:900px){.split{grid-template-columns:320px minmax(0,1fr);align-items:start}}
+@media (max-width:899px){
+  .split.has-sel .listpane{display:none}
+  .split:not(.has-sel) .detailpane{display:none}
+}
+@media (min-width:900px){.only-narrow{display:none!important}}
+.listpane,.detailpane{min-width:0}
+
+.tools{display:flex;gap:8px}
+.tools input{flex:1;min-width:0}
+.field input,.field select,.field textarea,.tools input{width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:16px}
+.field textarea{min-height:72px;resize:vertical}
+.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:700;cursor:pointer;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger);border-color:var(--danger);background:transparent}
+.btn.small{min-height:36px;padding:0 12px;font-size:14px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--accent)}
+.btn.onband{background:transparent;border-color:rgba(255,255,255,.55);color:var(--band-ink)}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:thin}
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:18px;background:var(--surface);font-size:14px;font-weight:500;cursor:pointer}
+.chip .cn{font-size:12px;opacity:.75}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+.tg{display:inline-flex;align-items:center;min-height:24px;padding:0 9px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);font-size:12px;font-weight:500;color:var(--muted);overflow-wrap:anywhere}
+.tg::before{content:"#";margin-right:2px;opacity:.7}
+button.tg{cursor:pointer;font-family:inherit}
+button.tg:hover{border-color:var(--accent);color:var(--accent)}
+.tg .rm{border:0;background:transparent;color:inherit;margin:0 -4px 0 4px;padding:0 4px;font-size:15px;line-height:1;cursor:pointer;min-height:22px}
+.tgs{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+
+.hrow{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:8px 8px;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left;cursor:pointer}
+.hrow:hover{background:var(--surface2)}
+.hrow.sel{background:var(--accent-soft)}
+.hrow .coat{width:22px;height:22px;border-radius:50%;border:1px solid var(--swatch-edge);flex:none}
+.hrow .tx{min-width:0;flex:1}
+.hrow .nm{display:block;font:800 17px/1.3 var(--f-disp);overflow-wrap:anywhere}
+.hrow .sb{display:block;font-size:13px;color:var(--muted)}
+.hrow .chev{color:var(--muted);flex:none}
+
+/* data page */
+.dbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--band);color:var(--band-ink)}
+.dbar h2{margin:0;flex:1;min-width:0;font:800 22px/1.3 var(--f-disp);overflow-wrap:anywhere}
+.ptable{width:100%;border-collapse:collapse;background:var(--surface);font-size:14px}
+.ptable th{width:7.5em;padding:8px 10px;border:1px solid var(--line);background:var(--th);text-align:left;font-weight:700;white-space:nowrap;vertical-align:top}
+.ptable td{padding:8px 10px;border:1px solid var(--line);overflow-wrap:anywhere;vertical-align:top}
+.ptable .big{font-weight:700;font-size:16px}
+.ptable .wins div{padding:1px 0}
+.cdot{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid var(--swatch-edge);vertical-align:-1px;margin-right:6px}
+.sech{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--band)}
+.sech h3{margin:0;font-size:16px;letter-spacing:.04em}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+.rtable{border-collapse:collapse;width:100%;min-width:780px;font-size:13px}
+.rtable th{padding:6px 8px;background:var(--th);border:1px solid var(--line);font-weight:700;white-space:nowrap;text-align:center}
+.rtable td{padding:7px 8px;border:1px solid var(--line);white-space:nowrap;background:var(--surface)}
+.rtable tbody tr{cursor:pointer}
+.rtable tbody tr:hover td{background:var(--surface2)}
+.rtable td.c{text-align:center}
+.rtable td.name{white-space:normal;min-width:170px;overflow-wrap:anywhere}
+.rtable th:first-child,.rtable td:first-child{position:sticky;left:0;z-index:1;box-shadow:1px 0 0 var(--line)}
+.rtable td.rkc{text-align:center;font-weight:800;font-size:15px}
+.rtable td.t1{background:var(--r1)}
+.rtable td.t2{background:var(--r2)}
+.rtable td.t3{background:var(--r3)}
+.rtable td.to{font-size:12px;font-weight:700;color:var(--muted)}
+.lk{color:var(--link);font-weight:700}
+.lnk{border:0;background:transparent;color:var(--link);text-decoration:underline;cursor:pointer;padding:4px;font-size:13px}
+.gb{display:inline-block;margin-left:6px;padding:0 6px;border-radius:3px;font-size:11px;font-weight:700;line-height:18px;color:#fff;background:var(--muted);vertical-align:1px}
+.gb.g1{background:var(--g1)}.gb.g2{background:var(--g2)}.gb.g3{background:var(--g3)}
+.gb.cl{background:transparent;border:1px solid var(--line);color:var(--muted);line-height:16px}
+.tnote{margin:8px 0 0;font-size:12px;color:var(--muted)}
+.empty{color:var(--muted);padding:12px 4px;font-size:14px}
+
+.group-block{margin-top:20px}
+.g-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.g-head .n{font-size:13px;color:var(--muted);flex:1}
+.g-head .tg{font-size:14px;min-height:30px;padding:0 12px}
+.hint{color:var(--muted);font-size:14px;margin:4px 0 12px}
+.panel{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);display:grid;gap:12px}
+.panel h3{margin:0;font-size:16px}
+.panel p{margin:0;color:var(--muted);font-size:14px}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px}
+
+#overlay{position:fixed;inset:0;z-index:50;background:rgba(10,18,14,.5);display:flex;align-items:flex-end;justify-content:center}
+#overlay[hidden]{display:none}
+.sheet{width:100%;max-width:520px;max-height:92%;overflow-y:auto;background:var(--bg);border-radius:16px 16px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));border:1px solid var(--line)}
+@media (min-width:600px){#overlay{align-items:center}.sheet{border-radius:16px;max-height:88%}}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}}
+.sh-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sh-head h2{margin:0;font:800 20px/1.3 var(--f-disp)}
+.x{width:40px;height:40px;border:0;background:transparent;font-size:26px;line-height:1;color:var(--muted);cursor:pointer}
+.field{display:grid;gap:6px;margin-bottom:14px;min-width:0}
+.field>label,.field>.lb{font-size:13px;font-weight:700;color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.coatgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.coatchip{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);font-size:13px;font-weight:500;cursor:pointer}
+.coatchip i{width:22px;height:22px;border-radius:50%;border:1px solid var(--swatch-edge)}
+.coatchip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.tagbox{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:44px;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.tagbox .tg{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.tg-empty{color:var(--muted);font-size:14px;padding:0 4px}
+.tagadd{display:flex;gap:8px}
+.tagadd input{flex:1;min-width:0}
+.sugg{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.sugg .lb2{font-size:12px;color:var(--muted)}
+.err{color:var(--danger);font-size:14px;min-height:20px;margin:0 0 8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.actions .primary{flex:1}
+.delbox{margin-top:16px;padding:12px;border:1px solid var(--danger);border-radius:10px;display:grid;gap:10px}
+.delbox p{margin:0;font-size:14px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:60;max-width:calc(100% - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:500}
+#toast[hidden]{display:none}
+@media (min-width:900px){#toast{bottom:32px}}
+</style>
+
+<header class="top"><div class="top-in">
+  <h1>競走馬ノート</h1>
+  <nav class="tabs" id="tabs" aria-label="画面の切り替え"></nav>
+</div></header>
+<main class="main" id="main"><p class="loading">記録を読み込んでいます…</p></main>
+<div id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div id="toast" hidden></div>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const COATS=[
+  {k:'鹿毛',c:'#8b4a2b'},{k:'黒鹿毛',c:'#4b2d21'},{k:'青鹿毛',c:'#2a211f'},{k:'青毛',c:'#111114'},
+  {k:'芦毛',c:'#aaaba8'},{k:'栗毛',c:'#b5662f'},{k:'栃栗毛',c:'#6d3a22'},{k:'白毛',c:'#f1f0ea'}
+];
+const GRADES=[['G1','GⅠ'],['G2','GⅡ'],['G3','GⅢ'],['L','リステッド'],['OP','オープン'],['C3','3勝クラス'],['C2','2勝クラス'],['C1','1勝クラス'],['MK','未勝利'],['NW','新馬']];
+const GLABEL=Object.fromEntries(GRADES);
+const OTHERS=['中止','除外','取消','失格'];
+const TRACKS=['札幌','函館','福島','新潟','東京','中山','中京','京都','阪神','小倉'];
+const SURFACES=[['芝','芝'],['ダ','ダート']];
+const coatColor=k=>(COATS.find(c=>c.k===k)||COATS[0]).c;
+
+let DB=null,mode='local';
+const S={horses:[],ready:false};
+const UI={tab:'horses',sel:null,filter:'all',q:''};
+let FORM={};
+const LS_KEY='keiba-note-v1';
+
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const byCreated=(a,b)=>(a.createdAt||0)-(b.createdAt||0);
+
+/* ---------- タグ ---------- */
+const tagsOf=h=>Array.isArray(h.tags)?h.tags:[];
+const normTag=s=>String(s||'').replace(/^[#＃\s]+/,'').replace(/\s+/g,' ').trim().slice(0,20);
+function addTag(arr,raw){
+  let added=false;
+  String(raw||'').split(/[、,，]/).forEach(p=>{
+    const t=normTag(p);
+    if(t&&!arr.some(x=>x.toLowerCase()===t.toLowerCase())){arr.push(t);added=true}
+  });
+  return added;
+}
+function allTags(){
+  const m=new Map();
+  S.horses.forEach(h=>tagsOf(h).forEach(t=>m.set(t,(m.get(t)||0)+1)));
+  return Array.from(m.entries()).sort((a,b)=>a[0].localeCompare(b[0],'ja'));
+}
+
+/* ---------- 集計 ---------- */
+function stats(h){
+  const r=h.races||[];
+  let w=0,p2=0,p3=0,o=0;
+  const g={G1:0,G2:0,G3:0};
+  r.forEach(x=>{
+    if(x.rank===1){w++;if(g[x.grade]!==undefined)g[x.grade]++}
+    else if(x.rank===2)p2++;
+    else if(x.rank===3)p3++;
+    else o++;
+  });
+  return {n:r.length,w:w,p2:p2,p3:p3,o:o,g:g};
+}
+function mainWins(h){
+  return (h.races||[]).filter(r=>r.rank===1&&/^G[123]$/.test(r.grade||''))
+    .sort((a,b)=>(a.grade<b.grade?-1:a.grade>b.grade?1:0)||(b.date||'').localeCompare(a.date||''));
+}
+const raceSort=(a,b)=>(b.date||'').localeCompare(a.date||'');
+const fmtDate=d=>d?d.replace(/-/g,'/'):'';
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+
+/* ---------- 保存 ---------- */
+function lsRead(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){return null}}
+function lsWrite(){try{localStorage.setItem(LS_KEY,JSON.stringify({horses:S.horses}))}catch(e){}}
+const Q={};
+function enqueue(key,fn){const p=(Q[key]||Promise.resolve()).catch(()=>{}).then(fn);Q[key]=p;return p}
+async function putHorse(id,data){
+  if(mode==='cloud'){
+    try{await enqueue(id,()=>DB.collection('horses').doc(id).set(data))}
+    catch(e){toast('保存できませんでした。もう一度お試しください');throw e}
+  }else{
+    const o=Object.assign({id:id},data);
+    const i=S.horses.findIndex(x=>x.id===id);
+    if(i>=0)S.horses[i]=o;else S.horses.push(o);
+    lsWrite();render();
+  }
+}
+async function delHorse(id){
+  if(mode==='cloud'){
+    try{await enqueue(id,()=>DB.collection('horses').doc(id).delete())}
+    catch(e){toast('削除できませんでした。もう一度お試しください');throw e}
+  }else{
+    S.horses=S.horses.filter(x=>x.id!==id);
+    lsWrite();render();
+  }
+}
+const horseData=h=>({name:h.name,coat:h.coat,tags:tagsOf(h).slice(),sire:h.sire||'',dam:h.dam||'',damsire:h.damsire||'',note:h.note||'',races:(h.races||[]).map(r=>Object.assign({},r)),createdAt:h.createdAt||Date.now()});
+
+/* ---------- 描画 ---------- */
+function visibleHorses(){
+  const q=UI.q.trim().toLowerCase();
+  let l=S.horses.slice().sort(byCreated).filter(h=>!q||h.name.toLowerCase().includes(q));
+  if(UI.filter==='none')l=l.filter(h=>!tagsOf(h).length);
+  else if(UI.filter.indexOf('tag:')===0){const t=UI.filter.slice(4);l=l.filter(h=>tagsOf(h).includes(t))}
+  return l;
+}
+function fixSel(){
+  if(UI.sel&&!S.horses.some(h=>h.id===UI.sel))UI.sel=null;
+  if(UI.filter.indexOf('tag:')===0&&!allTags().some(x=>x[0]===UI.filter.slice(4)))UI.filter='all';
+  if(UI.filter==='none'&&!allTags().length)UI.filter='all';
+  if(window.matchMedia('(min-width:900px)').matches){
+    const v=visibleHorses();
+    if(!v.some(h=>h.id===UI.sel))UI.sel=v.length?v[0].id:null;
+  }
+}
+function renderTabs(){
+  const t=[['horses','馬'],['tags','タグ'],['backup','バックアップ']];
+  $('tabs').innerHTML=t.map(x=>`<button type="button" class="tab" data-act="tab" data-v="${x[0]}" aria-current="${UI.tab===x[0]}">${x[1]}</button>`).join('');
+}
+function render(){
+  const act=document.activeElement;
+  const keep=act&&act.id==='q'?act.selectionStart:null;
+  renderTabs();
+  const m=$('main');
+  if(!S.ready){m.innerHTML='<p class="loading">記録を読み込んでいます…</p>';return}
+  fixSel();
+  if(UI.tab==='horses')m.innerHTML=horsesView();
+  else if(UI.tab==='tags')m.innerHTML=tagsView();
+  else m.innerHTML=backupView();
+  if(keep!==null&&$('q')){const q=$('q');q.focus();try{q.setSelectionRange(keep,keep)}catch(e){}}
+}
+
+function horsesView(){
+  const tags=allTags();
+  const chips=[`<button type="button" class="chip ${UI.filter==='all'?'on':''}" data-act="filter" data-v="all">すべて</button>`]
+    .concat(tags.map(x=>`<button type="button" class="chip ${UI.filter==='tag:'+x[0]?'on':''}" data-act="filter" data-v="${esc('tag:'+x[0])}"># ${esc(x[0])}<span class="cn">${x[1]}</span></button>`));
+  if(tags.length)chips.push(`<button type="button" class="chip ${UI.filter==='none'?'on':''}" data-act="filter" data-v="none">タグなし</button>`);
+  return `<div class="split ${UI.sel?'has-sel':''}">
+    <section class="listpane" aria-label="馬の一覧">
+      <div class="tools"><input id="q" type="search" placeholder="馬名で検索" value="${esc(UI.q)}" autocomplete="off" aria-label="馬名で検索"><button type="button" class="btn primary" data-act="add-horse">馬を追加</button></div>
+      <div class="chips">${chips.join('')}</div>
+      <div id="listBody">${listBodyHtml()}</div>
+    </section>
+    <section class="detailpane" aria-label="競走馬データ">${detailHtml()}</section>
+  </div>`;
+}
+function rowHtml(h){
+  const st=stats(h);
+  const sub=[h.coat,st.n?`${st.n}戦${st.w}勝`:'未出走'];
+  if(st.g.G1)sub.push(`GⅠ${st.g.G1}勝`);
+  const tg=tagsOf(h);
+  return `<button type="button" class="hrow ${h.id===UI.sel?'sel':''}" data-act="open-horse" data-id="${esc(h.id)}">
+    <span class="coat" style="background:${coatColor(h.coat)}"></span>
+    <span class="tx"><span class="nm">${esc(h.name)}</span><span class="sb">${esc(sub.join(' ・ '))}</span>${tg.length?`<span class="tgs">${tg.map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</span>`:''}</span>
+    <span class="chev" aria-hidden="true">›</span></button>`;
+}
+function listBodyHtml(){
+  if(!S.horses.length)return '<p class="empty">まだ馬が登録されていません。「馬を追加」から1頭目を登録します。</p>';
+  const list=visibleHorses();
+  if(!list.length)return '<p class="empty">条件に合う馬がいません。</p>';
+  return list.map(rowHtml).join('');
+}
+function gradeBadge(g){
+  if(!g)return '';
+  const cls=/^G[123]$/.test(g)?g.toLowerCase():'cl';
+  return `<span class="gb ${cls}">${esc(GLABEL[g]||g)}</span>`;
+}
+function detailHtml(){
+  const h=S.horses.find(x=>x.id===UI.sel);
+  if(!h)return '<p class="placeholder">一覧から馬を選ぶと、競走馬データが表示されます。</p>';
+  const st=stats(h);
+  const races=(h.races||[]).slice().sort(raceSort);
+  const tg=tagsOf(h);
+  const wins=mainWins(h);
+  const winHtml=wins.length?`<div class="wins">${wins.map(r=>`<div><span class="lk">${esc(r.name||'レース名なし')}</span>${gradeBadge(r.grade)}<span class="rm"> ${esc((r.date||'').slice(0,4))}</span></div>`).join('')}</div>`:'-';
+  return `<button type="button" class="btn ghost small only-narrow" data-act="back" style="margin-left:-12px">‹ 一覧へ戻る</button>
+  <div class="dbar"><h2>${esc(h.name)}</h2><button type="button" class="btn small onband" data-act="edit-horse">編集</button></div>
+  <table class="ptable"><tbody>
+    <tr><th>毛色</th><td><span class="cdot" style="background:${coatColor(h.coat)}"></span>${esc(h.coat)}</td></tr>
+    <tr><th>タグ</th><td>${tg.length?`<span class="tgs" style="margin:0">${tg.map(t=>`<button type="button" class="tg" data-act="tag-jump" data-v="${esc(t)}">${esc(t)}</button>`).join('')}</span>`:'-'}</td></tr>
+    <tr><th>父</th><td>${esc(h.sire||'-')}</td></tr>
+    <tr><th>母</th><td>${esc(h.dam||'-')}</td></tr>
+    <tr><th>母父</th><td>${esc(h.damsire||'-')}</td></tr>
+    <tr><th>通算成績</th><td><span class="big">${st.n}戦${st.w}勝</span> [${st.w}-${st.p2}-${st.p3}-${st.o}]</td></tr>
+    <tr><th>重賞勝利</th><td>GⅠ ${st.g.G1}勝 ／ GⅡ ${st.g.G2}勝 ／ GⅢ ${st.g.G3}勝</td></tr>
+    <tr><th>主な勝ち鞍</th><td>${winHtml}</td></tr>
+    ${h.note?`<tr><th>メモ</th><td style="white-space:pre-wrap">${esc(h.note)}</td></tr>`:''}
+  </tbody></table>
+  <div class="sech"><h3>競走成績</h3><button type="button" class="btn primary small" data-act="add-race">戦績を追加</button></div>
+  ${races.length?`<div class="tablewrap" tabindex="0"><table class="rtable"><thead><tr><th>日付</th><th>競馬場</th><th>レース名</th><th>着順</th><th>騎手</th><th>着差</th><th>距離</th><th>馬体重(増減)</th><th></th></tr></thead><tbody>${races.map(raceRow).join('')}</tbody></table></div>
+  <p class="tnote">行をタップすると編集できます。着順が「その他」の場合は、着別度数では着外に数えます。</p>`:'<p class="empty">戦績はまだありません。「戦績を追加」から記録します。</p>'}`;
+}
+function raceRow(r){
+  const cls=r.rank?(r.rank<=3?' t'+r.rank:''):' to';
+  const rk=r.rank?String(r.rank):esc(r.other||'その他');
+  const w=(r.weight||'').trim().replace(/\s*kg$/i,''),df=(r.diff||'').trim();
+  let wt=w;
+  if(df)wt+=/^[(（]/.test(df)?df:'('+df+')';
+  const dist=((r.surface||'')+(r.distance?String(r.distance):''))||'-';
+  return `<tr data-act="edit-race" data-id="${esc(r.id)}"><td class="c">${esc(fmtDate(r.date)||'-')}</td>
+    <td class="c">${esc(r.track||'-')}</td>
+    <td class="name"><span class="lk">${esc(r.name||'レース名なし')}</span>${gradeBadge(r.grade)}</td>
+    <td class="rkc${cls}">${rk}</td><td>${esc(r.jockey||'-')}</td><td class="c">${esc(r.margin||'-')}</td><td class="c">${esc(dist)}</td><td class="c">${esc(wt||'-')}</td>
+    <td class="c"><button type="button" class="lnk" data-act="edit-race" data-id="${esc(r.id)}">編集</button></td></tr>`;
+}
+
+function tagsView(){
+  const tags=allTags();
+  const blocks=tags.map(x=>{
+    const m=S.horses.filter(h=>tagsOf(h).includes(x[0])).sort(byCreated);
+    return `<div class="group-block"><div class="g-head"><span class="tg">${esc(x[0])}</span><span class="n">${m.length}頭</span><button type="button" class="btn small" data-act="edit-tag" data-v="${esc(x[0])}">名前の変更・削除</button></div>${m.map(rowHtml).join('')}</div>`;
+  }).join('');
+  const none=S.horses.filter(h=>!tagsOf(h).length).sort(byCreated);
+  return `<div style="max-width:640px">
+    <p class="hint" style="margin-top:0">馬にタグを付けると、同じタグの馬がここにまとまります。1頭に複数のタグを付けられます。タグは馬の編集画面で付けます。</p>
+    ${blocks||'<p class="empty">タグはまだありません。馬の編集画面で「同期」「同厩舎」などのタグを付けてみてください。</p>'}
+    ${tags.length&&none.length?`<div class="group-block"><div class="g-head"><strong>タグなし</strong><span class="n">${none.length}頭</span></div>${none.map(rowHtml).join('')}</div>`:''}
+  </div>`;
+}
+function backupView(){
+  const where=mode==='cloud'?'この記録はページのデータベースに保存されています。同じアカウントで開いたスマホやPCで、同じ内容が表示されます。':'この記録は、いま使っているブラウザの中にだけ保存されています。別の端末では表示されません。';
+  return `<div style="max-width:640px"><div class="panel"><h3>保存先</h3><p>${where}</p></div>
+  <div class="panel"><h3>書き出し</h3><p>馬・タグ・戦績をJSONファイルに保存します。バックアップや、別の場所への移行に使えます。</p>
+    <div class="btn-row"><button type="button" class="btn primary" data-act="export">ファイルに書き出す</button></div></div>
+  <div class="panel"><h3>読み込み</h3><p>書き出したJSONファイルを読み込みます。同じ馬がすでにある場合は、ファイルの内容で上書きします。</p>
+    <div class="field" style="margin:0"><input id="imp" type="file" accept=".json,application/json"></div></div>
+  <div class="panel"><h3>現在の記録</h3><p>${S.horses.length}頭 ・ タグ${allTags().length}種類 ・ 戦績${S.horses.reduce((a,h)=>a+(h.races||[]).length,0)}件</p></div></div>`;
+}
+
+/* ---------- シート ---------- */
+function openSheet(title,inner){
+  $('sheet').innerHTML=`<div class="sh-head"><h2>${esc(title)}</h2><button type="button" class="x" data-act="close" aria-label="閉じる">×</button></div><form id="sheetForm" novalidate>${inner}</form>`;
+  $('overlay').hidden=false;
+  document.documentElement.classList.add('lock');
+}
+function closeSheet(){
+  $('overlay').hidden=true;$('sheet').innerHTML='';
+  document.documentElement.classList.remove('lock');
+  FORM={};
+}
+function delBox(msg,label){
+  return `<button type="button" class="btn danger" data-act="ask-del" style="margin-top:16px">${esc(label)}</button>
+  <div class="delbox" id="delbox" hidden><p>${esc(msg)}</p><div class="btn-row"><button type="button" class="btn danger" data-act="do-del">削除する</button><button type="button" class="btn" data-act="cancel-del">やめる</button></div></div>`;
+}
+function paintTags(){
+  const box=$('tagbox');if(!box)return;
+  box.innerHTML=FORM.tags.length?FORM.tags.map(t=>`<span class="tg">${esc(t)}<button type="button" class="rm" data-act="rm-tag" data-v="${esc(t)}" aria-label="${esc(t)}を外す">×</button></span>`).join(''):'<span class="tg-empty">タグなし</span>';
+  const ex=allTags().map(x=>x[0]).filter(t=>!FORM.tags.some(y=>y.toLowerCase()===t.toLowerCase()));
+  $('tagsugg').innerHTML=ex.length?'<span class="lb2">既存のタグ:</span>'+ex.map(t=>`<button type="button" class="tg" data-act="pick-tag" data-v="${esc(t)}">${esc(t)}</button>`).join(''):'';
+}
+function commitTagInput(){
+  const inp=$('f-tag');if(!inp)return;
+  if(inp.value.trim()){addTag(FORM.tags,inp.value);inp.value='';paintTags()}
+}
+
+function openHorseForm(id){
+  const h=id?S.horses.find(x=>x.id===id):null;
+  FORM={coat:h?h.coat:COATS[0].k,tags:h?tagsOf(h).slice():[]};
+  openSheet(h?'馬を編集':'馬を追加',`
+    <div class="field"><label for="f-name">馬名</label><input id="f-name" type="text" maxlength="40" value="${esc(h?h.name:'')}" placeholder="例: アサヒノカゼ" autocomplete="off"></div>
+    <div class="field"><span class="lb">毛色</span><div class="coatgrid" id="coatgrid">${COATS.map(c=>`<button type="button" class="coatchip ${c.k===FORM.coat?'on':''}" data-act="pick-coat" data-v="${c.k}"><i style="background:${c.c}"></i>${c.k}</button>`).join('')}</div></div>
+    <div class="field"><label for="f-tag">タグ(任意・複数可)</label>
+      <div class="tagbox" id="tagbox"></div>
+      <div class="tagadd"><input id="f-tag" type="text" maxlength="20" placeholder="例: 同期、同厩舎" autocomplete="off"><button type="button" class="btn" data-act="add-tag">追加</button></div>
+      <div class="sugg" id="tagsugg"></div></div>
+    <div class="two">
+      <div class="field"><label for="f-sire">父</label><input id="f-sire" type="text" maxlength="40" value="${esc(h?h.sire:'')}" autocomplete="off"></div>
+      <div class="field"><label for="f-dam">母</label><input id="f-dam" type="text" maxlength="40" value="${esc(h?h.dam:'')}" autocomplete="off"></div>
+      <div class="field"><label for="f-damsire">母父</label><input id="f-damsire" type="text" maxlength="40" value="${esc(h?h.damsire:'')}" autocomplete="off"></div>
+    </div>
+    <div class="field"><label for="f-note">メモ(任意)</label><textarea id="f-note" maxlength="500">${esc(h?h.note:'')}</textarea></div>
+    <p class="err" id="f-err"></p>
+    <div class="actions"><button type="submit" class="btn primary">保存</button><button type="button" class="btn" data-act="close">キャンセル</button></div>
+    ${h?delBox('この馬と戦績をすべて削除します。元に戻せません。','この馬を削除'):''}`);
+  paintTags();
+  if(!h)setTimeout(()=>{const f=$('f-name');f&&f.focus()},40);
+  FORM.save=async()=>{
+    commitTagInput();
+    const name=$('f-name').value.trim();
+    if(!name){$('f-err').textContent='馬名を入力してください。';return}
+    const nh=h?horseData(h):{races:[],createdAt:Date.now()};
+    nh.name=name;nh.coat=FORM.coat;nh.tags=FORM.tags.slice();nh.note=$('f-note').value.trim();
+    nh.sire=$('f-sire').value.trim();nh.dam=$('f-dam').value.trim();nh.damsire=$('f-damsire').value.trim();
+    const hid=h?h.id:newId('h');
+    try{await putHorse(hid,horseData(nh))}catch(e){return}
+    UI.sel=hid;UI.tab='horses';closeSheet();if(mode==='cloud')render();toast('保存しました');
+  };
+  FORM.del=async()=>{
+    try{await delHorse(h.id)}catch(e){return}
+    if(UI.sel===h.id)UI.sel=null;closeSheet();if(mode==='cloud')render();toast('削除しました');
+  };
+}
+
+function openRaceForm(hid,rid){
+  const h=S.horses.find(x=>x.id===hid);if(!h)return;
+  const r=rid?(h.races||[]).find(x=>x.id===rid):null;
+  const rankOpts=Array.from({length:18},(_,i)=>`<option value="${i+1}" ${r&&r.rank===i+1?'selected':''}>${i+1}着</option>`).join('')+`<option value="o" ${r&&!r.rank?'selected':''}>その他</option>`;
+  const isOther=r&&!r.rank;
+  const trackSel=!r||!r.track?'':(TRACKS.includes(r.track)?r.track:'o');
+  const surfSel=r?(r.surface||''):'芝';
+  openSheet(r?'戦績を編集':'戦績を追加',`
+    <div class="two">
+      <div class="field"><label for="r-date">日付</label><input id="r-date" type="date" value="${esc(r?r.date:today())}"></div>
+      <div class="field"><label for="r-grade">グレード</label><select id="r-grade">${GRADES.map(g=>`<option value="${g[0]}" ${(r?r.grade:'OP')===g[0]?'selected':''}>${g[1]}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label for="r-name">レース名</label><input id="r-name" type="text" maxlength="40" value="${esc(r?r.name:'')}" placeholder="例: 日本ダービー" autocomplete="off"></div>
+    <div class="two">
+      <div class="field"><label for="r-track">競馬場</label><select id="r-track"><option value="">未選択</option>${TRACKS.map(t=>`<option value="${t}" ${trackSel===t?'selected':''}>${t}</option>`).join('')}<option value="o" ${trackSel==='o'?'selected':''}>その他</option></select></div>
+      <div class="field"><label for="r-surface">芝/ダート</label><select id="r-surface"><option value="">未選択</option>${SURFACES.map(s=>`<option value="${s[0]}" ${surfSel===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select></div>
+    </div>
+    <div class="field" id="r-track-other-wrap" ${trackSel==='o'?'':'hidden'}><label for="r-track-other">競馬場の名前</label><input id="r-track-other" type="text" maxlength="20" value="${esc(trackSel==='o'?r.track:'')}" placeholder="例: 大井、ロンシャン" autocomplete="off"></div>
+    <div class="two">
+      <div class="field"><label for="r-dist">距離(m)</label><input id="r-dist" type="text" inputmode="numeric" maxlength="5" value="${esc(r&&r.distance?r.distance:'')}" placeholder="例: 2400" autocomplete="off"></div>
+      <div class="field"><label for="r-rank">着順</label><select id="r-rank">${rankOpts}</select></div>
+    </div>
+    <div class="field" id="r-other-wrap" ${isOther?'':'hidden'}><label for="r-other">その他の内容</label><select id="r-other">${OTHERS.map(o=>`<option ${r&&r.other===o?'selected':''}>${o}</option>`).join('')}</select></div>
+    <div class="two">
+      <div class="field"><label for="r-margin">着差</label><input id="r-margin" type="text" maxlength="20" value="${esc(r?r.margin:'')}" placeholder="例: クビ" autocomplete="off"></div>
+      <div class="field"><label for="r-jockey">騎手</label><input id="r-jockey" type="text" maxlength="20" value="${esc(r?r.jockey:'')}" autocomplete="off"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="r-weight">馬体重(kg)</label><input id="r-weight" type="text" inputmode="numeric" maxlength="6" value="${esc(r?r.weight:'')}" placeholder="例: 482" autocomplete="off"></div>
+      <div class="field"><label for="r-diff">増減</label><input id="r-diff" type="text" maxlength="12" value="${esc(r?r.diff:'')}" placeholder="例: +4" autocomplete="off"></div>
+    </div>
+    <p class="err" id="f-err"></p>
+    <div class="actions"><button type="submit" class="btn primary">保存</button><button type="button" class="btn" data-act="close">キャンセル</button></div>
+    ${r?delBox('この戦績を削除します。元に戻せません。','この戦績を削除'):''}`);
+  FORM.save=async()=>{
+    const rv=$('r-rank').value;
+    let track=$('r-track').value;
+    if(track==='o')track=$('r-track-other').value.trim();
+    const distance=$('r-dist').value.normalize('NFKC').replace(/\D/g,'');
+    const nr={id:r?r.id:newId('r'),date:$('r-date').value,name:$('r-name').value.trim(),grade:$('r-grade').value,
+      track:track,surface:$('r-surface').value,distance:distance,
+      rank:rv==='o'?null:parseInt(rv,10),other:rv==='o'?$('r-other').value:'',
+      margin:$('r-margin').value.trim(),jockey:$('r-jockey').value.trim(),weight:$('r-weight').value.trim(),diff:$('r-diff').value.trim()};
+    const nh=horseData(h);
+    if(r)nh.races=nh.races.map(x=>x.id===r.id?nr:x);else nh.races.push(nr);
+    try{await putHorse(h.id,nh)}catch(e){return}
+    closeSheet();if(mode==='cloud')render();toast('保存しました');
+  };
+  FORM.del=async()=>{
+    const nh=horseData(h);nh.races=nh.races.filter(x=>x.id!==r.id);
+    try{await putHorse(h.id,nh)}catch(e){return}
+    closeSheet();if(mode==='cloud')render();toast('削除しました');
+  };
+}
+
+function openTagForm(tag){
+  const members=S.horses.filter(h=>tagsOf(h).includes(tag));
+  openSheet('タグを編集',`
+    <div class="field"><label for="t-name">タグ名</label><input id="t-name" type="text" maxlength="20" value="${esc(tag)}" autocomplete="off"></div>
+    <p class="hint" style="margin-top:-4px">${members.length}頭に付いています。すでにある別のタグと同じ名前にすると、1つのタグにまとまります。</p>
+    <p class="err" id="f-err"></p>
+    <div class="actions"><button type="submit" class="btn primary">保存</button><button type="button" class="btn" data-act="close">キャンセル</button></div>
+    ${delBox(`このタグを${members.length}頭の馬から外します。馬と戦績は消えません。`,'このタグを削除')}`);
+  FORM.save=async()=>{
+    const nn=normTag($('t-name').value);
+    if(!nn){$('f-err').textContent='タグ名を入力してください。';return}
+    try{
+      for(const h of members){
+        const nh=horseData(h);
+        const arr=[];
+        nh.tags.forEach(t=>addTag(arr,t===tag?nn:t));
+        nh.tags=arr;
+        await putHorse(h.id,nh);
+      }
+    }catch(e){return}
+    if(UI.filter==='tag:'+tag)UI.filter='tag:'+nn;
+    closeSheet();if(mode==='cloud')render();toast('保存しました');
+  };
+  FORM.del=async()=>{
+    try{
+      for(const h of members){const nh=horseData(h);nh.tags=nh.tags.filter(t=>t!==tag);await putHorse(h.id,nh)}
+    }catch(e){return}
+    closeSheet();if(mode==='cloud')render();toast('削除しました');
+  };
+}
+
+/* ---------- バックアップ ---------- */
+async function exportData(){
+  const d=new Date();
+  const stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const json=JSON.stringify({app:'keiba-note',version:2,horses:S.horses},null,2);
+  let dl=null;
+  try{dl=await (window.claude&&window.claude.use?window.claude.use('downloads'):null)}catch(e){}
+  if(dl){
+    try{await dl.save({filename:'keiba-note-'+stamp+'.json',data:json});toast('書き出しました')}
+    catch(e){if(!e||e.code!=='declined')toast('書き出せませんでした')}
+  }else{
+    try{await navigator.clipboard.writeText(json);toast('書き出しデータをコピーしました。メモなどに貼り付けて保存してください')}
+    catch(e){toast('この環境では書き出せません')}
+  }
+}
+async function importData(file){
+  let data;
+  try{data=JSON.parse(await file.text())}catch(e){toast('ファイルを読み込めませんでした');return}
+  if(!data||!Array.isArray(data.horses)){toast('このアプリで書き出したファイルではありません');return}
+  const gname={};
+  (Array.isArray(data.groups)?data.groups:[]).forEach(g=>{if(g&&g.id&&g.name)gname[g.id]=g.name});
+  const idOk=s=>typeof s==='string'&&/^[A-Za-z0-9_-]{1,60}$/.test(s);
+  let nh=0;
+  try{
+    for(const h of data.horses){
+      if(!idOk(h.id)||!h.name)continue;
+      const o=Object.assign({},h);
+      if(!Array.isArray(o.tags)){o.tags=[];if(o.groupId&&gname[o.groupId])addTag(o.tags,gname[o.groupId])}
+      o.tags=o.tags.map(normTag).filter(Boolean);
+      await putHorse(h.id,horseData(o));nh++;
+    }
+  }catch(e){return}
+  render();toast(nh+'頭を読み込みました');
+}
+
+let toastT=null;
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},3200)}
+
+/* ---------- イベント ---------- */
+document.addEventListener('click',e=>{
+  if(e.target.id==='overlay'){closeSheet();return}
+  const t=e.target.closest('[data-act]');if(!t)return;
+  const a=t.dataset.act,v=t.dataset.v,id=t.dataset.id;
+  switch(a){
+    case 'tab':UI.tab=v;render();window.scrollTo(0,0);break;
+    case 'filter':UI.filter=v;render();break;
+    case 'open-horse':
+      UI.sel=id;UI.tab='horses';
+      if(!visibleHorses().some(h=>h.id===id)){UI.filter='all';UI.q=''}
+      render();window.scrollTo(0,0);break;
+    case 'tag-jump':UI.filter='tag:'+v;UI.q='';UI.sel=null;UI.tab='horses';render();window.scrollTo(0,0);break;
+    case 'back':UI.sel=null;render();window.scrollTo(0,0);break;
+    case 'add-horse':openHorseForm();break;
+    case 'edit-horse':openHorseForm(UI.sel);break;
+    case 'add-race':openRaceForm(UI.sel);break;
+    case 'edit-race':openRaceForm(UI.sel,id);break;
+    case 'edit-tag':openTagForm(v);break;
+    case 'pick-coat':FORM.coat=v;$('coatgrid').querySelectorAll('.coatchip').forEach(b=>b.classList.toggle('on',b.dataset.v===v));break;
+    case 'add-tag':commitTagInput();{const i=$('f-tag');i&&i.focus()}break;
+    case 'pick-tag':addTag(FORM.tags,v);paintTags();break;
+    case 'rm-tag':FORM.tags=FORM.tags.filter(x=>x!==v);paintTags();break;
+    case 'ask-del':$('delbox').hidden=false;t.hidden=true;break;
+    case 'cancel-del':$('delbox').hidden=true;$('sheet').querySelector('[data-act="ask-del"]').hidden=false;break;
+    case 'do-del':if(FORM.del)FORM.del();break;
+    case 'close':closeSheet();break;
+    case 'export':exportData();break;
+  }
+});
+document.addEventListener('submit',e=>{e.preventDefault();if(FORM.save)FORM.save()});
+document.addEventListener('input',e=>{
+  if(e.target.id==='q'){UI.q=e.target.value;const b=$('listBody');if(b)b.innerHTML=listBodyHtml()}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='r-rank')$('r-other-wrap').hidden=e.target.value!=='o';
+  if(e.target.id==='r-track')$('r-track-other-wrap').hidden=e.target.value!=='o';
+  if(e.target.id==='imp'&&e.target.files[0]){importData(e.target.files[0]);e.target.value=''}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&!$('overlay').hidden){closeSheet();return}
+  if(e.target.id==='f-tag'&&e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();commitTagInput()}
+});
+const mq=window.matchMedia('(min-width:900px)');
+if(mq.addEventListener)mq.addEventListener('change',()=>{if(S.ready)render()});
+
+/* ---------- 起動 ---------- */
+function useLocal(){
+  mode='local';
+  const d=lsRead();
+  if(d){
+    const gname={};
+    (Array.isArray(d.groups)?d.groups:[]).forEach(g=>{if(g&&g.id&&g.name)gname[g.id]=g.name});
+    S.horses=(d.horses||[]).map(h=>{
+      if(Array.isArray(h.tags))return h;
+      const tags=[];if(h.groupId&&gname[h.groupId])addTag(tags,gname[h.groupId]);
+      return Object.assign({},h,{tags:tags});
+    });
+  }
+  S.ready=true;render();
+}
+async function boot(){
+  render();
+  let db=null;
+  try{db=await (window.claude&&window.claude.use?window.claude.use('db'):null)}catch(e){}
+  if(!db){useLocal();return}
+  DB=db;mode='cloud';
+  const fail=()=>{if(mode==='cloud'&&!S.ready){toast('記録を読み込めませんでした');useLocal()}};
+  try{
+    db.collection('horses').onSnapshot(s=>{
+      S.horses=s.docs.map(d=>Object.assign({id:d.id},d.data())).sort(byCreated);
+      S.ready=true;render();
+    },fail);
+  }catch(e){fail()}
+}
+boot();
+})();
+</script>
+
+</body></html>
